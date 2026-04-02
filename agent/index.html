@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CityPulse — AI Travel Intelligence</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .container { background: white; border-radius: 24px; padding: 40px; max-width: 700px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .header { text-align: center; margin-bottom: 30px; }
+  .logo { font-size: 48px; margin-bottom: 10px; }
+  h1 { font-size: 28px; color: #1a1a2e; font-weight: 700; }
+  p.subtitle { color: #666; margin-top: 8px; font-size: 15px; }
+  .cities { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; justify-content: center; }
+  .city-btn { background: #f0f0ff; color: #667eea; border: 1px solid #667eea; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .city-btn:hover { background: #667eea; color: white; }
+  .input-area { display: flex; gap: 10px; margin-bottom: 20px; }
+  input { flex: 1; padding: 14px 18px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px; outline: none; transition: border 0.2s; }
+  input:focus { border-color: #667eea; }
+  button.ask { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 14px 24px; border-radius: 12px; font-size: 15px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
+  button.ask:hover { opacity: 0.9; }
+  button.ask:disabled { opacity: 0.6; cursor: not-allowed; }
+  .response { background: #f8f9ff; border-radius: 16px; padding: 24px; min-height: 100px; white-space: pre-wrap; line-height: 1.8; color: #333; font-size: 15px; display: none; }
+  .loading { text-align: center; color: #667eea; font-size: 15px; display: none; padding: 20px; }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f0f0ff; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">✈️</div>
+    <h1>CityPulse</h1>
+    <p class="subtitle">AI Travel Intelligence powered by ADK + MCP</p>
+  </div>
+  <div class="cities">
+    <button class="city-btn" onclick="askCity('Tokyo')">🗼 Tokyo</button>
+    <button class="city-btn" onclick="askCity('Paris')">🗺️ Paris</button>
+    <button class="city-btn" onclick="askCity('Dubai')">🌆 Dubai</button>
+    <button class="city-btn" onclick="askCity('Mumbai')">🌊 Mumbai</button>
+    <button class="city-btn" onclick="askCity('Singapore')">🦁 Singapore</button>
+    <button class="city-btn" onclick="askCity('Hyderabad')">🕌 Hyderabad</button>
+  </div>
+  <div class="input-area">
+    <input type="text" id="question" placeholder="Ask about any city... e.g. Tell me about Tokyo" onkeypress="if(event.key==='Enter') ask()"/>
+    <button class="ask" onclick="ask()" id="askBtn">Ask ✨</button>
+  </div>
+  <div class="loading" id="loading">
+    <span class="spinner"></span>Fetching live data for you...
+  </div>
+  <div class="response" id="response"></div>
+  <div style="text-align:center">
+    <span class="badge">⚡ Powered by Gemini 2.0 + MCP Protocol</span>
+  </div>
+</div>
+<script>
+  function askCity(city) {
+    document.getElementById('question').value = `Tell me about ${city} - weather, highlights and food!`;
+    ask();
+  }
+  async function ask() {
+    const q = document.getElementById('question').value.trim();
+    if (!q) return;
+    document.getElementById('askBtn').disabled = true;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('response').style.display = 'none';
+    try {
+      const res = await fetch('/query', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question: q})
+      });
+      const data = await res.json();
+      document.getElementById('response').style.display = 'block';
+      document.getElementById('response').innerText = data.response;
+    } catch(e) {
+      document.getElementById('response').style.display = 'block';
+      document.getElementById('response').innerText = 'Error connecting. Please try again.';
+    }
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('askBtn').disabled = false;
+  }
+</script>
+</body>
+</html>

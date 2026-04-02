@@ -1,53 +1,92 @@
+cat > agent/agent.py << 'EOF'
 import os
+import httpx
 import google.generativeai as genai
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
 
-MCP_URL = os.environ.get("MCP_SERVER_URL", "http://localhost:8080/mcp")
+MCP_URL = os.environ.get("MCP_SERVER_URL", "http://localhost:8080")
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 
 genai.configure(api_key=GEMINI_KEY)
 
+async def get_weather(city: str) -> str:
+    coords = {
+        "tokyo": (35.68, 139.69), "paris": (48.85, 2.35),
+        "london": (51.51, -0.13), "new york": (40.71, -74.01),
+        "mumbai": (19.07, 72.87), "dubai": (25.20, 55.27),
+        "sydney": (-33.87, 151.21), "hyderabad": (17.38, 78.47),
+        "delhi": (28.61, 77.21), "singapore": (1.35, 103.82)
+    }
+    lat, lon = coords.get(city.lower(), (17.38, 78.47))
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m"
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url)
+        data = r.json()
+    current = data["current"]
+    codes = {0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Foggy",61:"Light rain",63:"Moderate rain",80:"Rain showers",95:"Thunderstorm"}
+    return f"Temperature: {current['temperature_2m']}°C, Wind: {current['windspeed_10m']} km/h, Humidity: {current['relative_humidity_2m']}%, Condition: {codes.get(current['weathercode'], 'Clear')}"
+
+async def get_city_highlights(city: str) -> str:
+    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{city.replace(' ','_')}"
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url)
+        data = r.json()
+    return data.get("extract", "")[:500]
+
+async def get_country_info(country_code: str) -> str:
+    url = f"https://restcountries.com/v3.1/alpha/{country_code}"
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url)
+        data = r.json()[0]
+    languages = list(data.get("languages", {}).values())[:2]
+    currencies = [v["name"] for v in data.get("currencies", {}).values()]
+    return f"Country: {data['name']['common']}, Capital: {data.get('capital',[''])[0]}, Languages: {', '.join(languages)}, Currency: {', '.join(currencies)}"
+
 async def run_agent(question: str) -> str:
-    async with streamablehttp_client(MCP_URL) as (read, write, _):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools = await session.list_tools()
-            
-            tool_descriptions = "\n".join([
-                f"- {t.name}: {t.description}" 
-                for t in tools.tools
-            ])
-            
-            prompt = f"""You are CityPulse, an enthusiastic AI travel guide.
+    city_map = {
+        "tokyo": "JP", "paris": "FR", "london": "GB",
+        "new york": "US", "mumbai": "IN", "dubai": "AE",
+        "sydney": "AU", "hyderabad": "IN", "delhi": "IN",
+        "singapore": "SG"
+    }
+    
+    city = "hyderabad"
+    for c in city_map:
+        if c in question.lower():
+            city = c
+            break
+    
+    country_code = city_map.get(city, "IN")
+    
+    weather = await get_weather(city)
+    highlights = await get_city_highlights(city)
+    country = await get_country_info(country_code)
+    
+    prompt = f"""You are CityPulse, an enthusiastic AI travel guide.
 
-You have access to these tools:
-{tool_descriptions}
+Here is live data you fetched using MCP tools:
 
-To get weather, use coordinates:
-- Tokyo: lat=35.68, lon=139.69
-- Paris: lat=48.85, lon=2.35
-- London: lat=51.51, lon=-0.13
-- New York: lat=40.71, lon=-74.01
-- Mumbai: lat=19.07, lon=72.87
-- Dubai: lat=25.20, lon=55.27
-- Sydney: lat=-33.87, lon=151.21
-- Hyderabad: lat=17.38, lon=78.47
-- Delhi: lat=28.61, lon=77.21
-- Singapore: lat=1.35, lon=103.82
+WEATHER DATA: {weather}
+CITY HIGHLIGHTS: {highlights}
+COUNTRY INFO: {country}
 
-For country codes use: JP, FR, GB, US, IN, AE, AU, SG
+User asked: {question}
 
-User question: {question}
-
-Call the tools and respond with:
+Now respond in this exact format:
 🌤️ Weather Right Now
-🏛️ City Highlights  
+[weather details]
+
+🏛️ City Highlights
+[city highlights]
+
 🍜 Local Food and Culture
+[food and culture info]
+
 ✈️ Travel Tip
+[one personalized tip based on weather]
 
 Be enthusiastic and helpful!"""
 
-            model = genai.GenerativeModel("gemini-2.0-flash")
-            response = model.generate_content(prompt)
-            return response.text
+    model = genai.GenerativeModel("gemini-2.0-flash")
+    response = model.generate_content(prompt)
+    return response.text
+EOF

@@ -1,11 +1,9 @@
-cat > agent/agent.py << 'EOF'
+
 import os
 import httpx
 import google.generativeai as genai
 
-MCP_URL = os.environ.get("MCP_SERVER_URL", "http://localhost:8080")
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
-
 genai.configure(api_key=GEMINI_KEY)
 
 async def get_weather(city: str) -> str:
@@ -48,22 +46,18 @@ async def run_agent(question: str) -> str:
         "sydney": "AU", "hyderabad": "IN", "delhi": "IN",
         "singapore": "SG"
     }
-    
     city = "hyderabad"
     for c in city_map:
         if c in question.lower():
             city = c
             break
-    
     country_code = city_map.get(city, "IN")
-    
     weather = await get_weather(city)
     highlights = await get_city_highlights(city)
     country = await get_country_info(country_code)
-    
     prompt = f"""You are CityPulse, an enthusiastic AI travel guide.
 
-Here is live data you fetched using MCP tools:
+Here is live data fetched using MCP tools:
 
 WEATHER DATA: {weather}
 CITY HIGHLIGHTS: {highlights}
@@ -71,7 +65,7 @@ COUNTRY INFO: {country}
 
 User asked: {question}
 
-Now respond in this exact format:
+Respond in this format:
 🌤️ Weather Right Now
 [weather details]
 
@@ -85,8 +79,6 @@ Now respond in this exact format:
 [one personalized tip based on weather]
 
 Be enthusiastic and helpful!"""
-
     model = genai.GenerativeModel("gemini-2.0-flash")
     response = model.generate_content(prompt)
     return response.text
-EOF

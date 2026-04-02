@@ -1,4 +1,3 @@
-
 import os
 import httpx
 import google.generativeai as genai
@@ -16,28 +15,37 @@ async def get_weather(city: str) -> str:
     }
     lat, lon = coords.get(city.lower(), (17.38, 78.47))
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m"
-    async with httpx.AsyncClient() as client:
-        r = await client.get(url)
-        data = r.json()
-    current = data["current"]
-    codes = {0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Foggy",61:"Light rain",63:"Moderate rain",80:"Rain showers",95:"Thunderstorm"}
-    return f"Temperature: {current['temperature_2m']}°C, Wind: {current['windspeed_10m']} km/h, Humidity: {current['relative_humidity_2m']}%, Condition: {codes.get(current['weathercode'], 'Clear')}"
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.get(url)
+            data = r.json()
+        current = data["current"]
+        codes = {0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Foggy",61:"Light rain",63:"Moderate rain",80:"Rain showers",95:"Thunderstorm"}
+        return f"Temperature: {current['temperature_2m']}°C, Wind: {current['windspeed_10m']} km/h, Humidity: {current['relative_humidity_2m']}%, Condition: {codes.get(current['weathercode'], 'Clear')}"
+    except Exception as e:
+        return f"Weather data unavailable: {str(e)}"
 
 async def get_city_highlights(city: str) -> str:
-    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{city.replace(' ','_')}"
-    async with httpx.AsyncClient() as client:
-        r = await client.get(url)
-        data = r.json()
-    return data.get("extract", "")[:500]
+    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{city.replace(' ','_').title()}"
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.get(url)
+            data = r.json()
+        return data.get("extract", "No highlights found")[:500]
+    except Exception as e:
+        return f"City highlights unavailable: {str(e)}"
 
 async def get_country_info(country_code: str) -> str:
     url = f"https://restcountries.com/v3.1/alpha/{country_code}"
-    async with httpx.AsyncClient() as client:
-        r = await client.get(url)
-        data = r.json()[0]
-    languages = list(data.get("languages", {}).values())[:2]
-    currencies = [v["name"] for v in data.get("currencies", {}).values()]
-    return f"Country: {data['name']['common']}, Capital: {data.get('capital',[''])[0]}, Languages: {', '.join(languages)}, Currency: {', '.join(currencies)}"
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.get(url)
+            data = r.json()[0]
+        languages = list(data.get("languages", {}).values())[:2]
+        currencies = [v["name"] for v in data.get("currencies", {}).values()]
+        return f"Country: {data['name']['common']}, Capital: {data.get('capital',[''])[0]}, Languages: {', '.join(languages)}, Currency: {', '.join(currencies)}"
+    except Exception as e:
+        return f"Country info unavailable: {str(e)}"
 
 async def run_agent(question: str) -> str:
     city_map = {
@@ -52,9 +60,11 @@ async def run_agent(question: str) -> str:
             city = c
             break
     country_code = city_map.get(city, "IN")
+
     weather = await get_weather(city)
     highlights = await get_city_highlights(city)
     country = await get_country_info(country_code)
+
     prompt = f"""You are CityPulse, an enthusiastic AI travel guide.
 
 Here is live data fetched using MCP tools:
@@ -67,18 +77,22 @@ User asked: {question}
 
 Respond in this format:
 🌤️ Weather Right Now
-[weather details]
+[weather details here]
 
 🏛️ City Highlights
-[city highlights]
+[city highlights here]
 
 🍜 Local Food and Culture
-[food and culture info]
+[food and culture info here]
 
 ✈️ Travel Tip
 [one personalized tip based on weather]
 
 Be enthusiastic and helpful!"""
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    response = model.generate_content(prompt)
-    return response.text
+
+    try:
+        model = genai.GenerativeModel("gemini-2.0-flash")
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"AI response error: {str(e)}"

@@ -1,4 +1,8 @@
-<!DOCTYPE html>
+python3 << 'EOF'
+content = open('/workspaces/citypulse-mcp/agent/index.html').read()
+print("index.html exists, updating...")
+
+new_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -8,198 +12,248 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: Segoe UI, sans-serif;
-  background: #0f0c29;
+  background: #0a0a1a;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
   color: white;
+  padding: 20px;
 }
-.hero {
+.stars {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  z-index: -1;
+}
+.header {
   text-align: center;
-  margin-bottom: 40px;
+  padding: 40px 20px 20px;
 }
-.emoji { font-size: 64px; margin-bottom: 16px; display: block; }
+.logo { font-size: 56px; margin-bottom: 12px; display: block; }
 h1 {
-  font-size: 48px;
-  font-weight: 800;
-  color: #f093fb;
-  margin-bottom: 10px;
-}
-.tagline {
-  font-size: 16px;
-  color: rgba(255,255,255,0.6);
+  font-size: 52px;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -1px;
   margin-bottom: 8px;
 }
+h1 span { color: #f093fb; }
+.tagline { color: rgba(255,255,255,0.5); font-size: 16px; margin-bottom: 12px; }
+.badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
 .badge {
-  display: inline-block;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 6px 16px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 5px 14px;
   border-radius: 20px;
   font-size: 12px;
-  color: rgba(255,255,255,0.7);
-  margin-top: 8px;
+  color: rgba(255,255,255,0.6);
 }
-.card {
+.badge.hot { background: rgba(240,147,251,0.15); border-color: #f093fb; color: #f093fb; }
+.main { max-width: 780px; margin: 0 auto; }
+.search-box {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 24px;
-  padding: 32px;
-  width: 100%;
-  max-width: 680px;
-}
-.cities {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 24px;
-  justify-content: center;
-}
-.city-btn {
-  background: rgba(255,255,255,0.08);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 8px 18px;
   border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-.city-btn:hover {
-  background: #f093fb;
-  border-color: transparent;
-  transform: translateY(-2px);
-}
-.input-row {
-  display: flex;
-  gap: 12px;
+  padding: 28px;
   margin-bottom: 20px;
 }
+.search-row { display: flex; gap: 12px; margin-bottom: 20px; }
 input {
   flex: 1;
-  padding: 14px 20px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.2);
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 14px;
   font-size: 15px;
   color: white;
   outline: none;
+  transition: all 0.2s;
 }
-input::placeholder { color: rgba(255,255,255,0.4); }
-input:focus { border-color: #f093fb; }
+input::placeholder { color: rgba(255,255,255,0.3); }
+input:focus { border-color: #f093fb; background: rgba(255,255,255,0.1); }
 .ask-btn {
-  background: #f093fb;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
   border: none;
-  padding: 14px 28px;
+  padding: 16px 32px;
   border-radius: 14px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  letter-spacing: 0.3px;
 }
-.ask-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-.ask-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.ask-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(240,147,251,0.4); }
+.ask-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.cities-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; }
+.cities { display: flex; flex-wrap: wrap; gap: 8px; }
+.city-btn {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.city-btn:hover {
+  background: rgba(240,147,251,0.15);
+  border-color: #f093fb;
+  color: white;
+  transform: translateY(-1px);
+}
 .loading {
   text-align: center;
-  padding: 24px;
+  padding: 32px;
   display: none;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.6);
+  font-size: 15px;
 }
 .spinner {
   display: inline-block;
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(255,255,255,0.2);
+  width: 28px; height: 28px;
+  border: 3px solid rgba(255,255,255,0.1);
   border-top: 3px solid #f093fb;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-right: 10px;
+  animation: spin 0.7s linear infinite;
+  margin-right: 12px;
   vertical-align: middle;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.response {
-  background: rgba(255,255,255,0.05);
+.response-box {
+  background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 16px;
-  padding: 24px;
-  white-space: pre-wrap;
-  line-height: 1.9;
-  font-size: 15px;
-  color: rgba(255,255,255,0.9);
+  padding: 28px;
   display: none;
+  animation: fadeUp 0.4s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+.response-text {
+  white-space: pre-wrap;
+  line-height: 2;
+  font-size: 15px;
+  color: rgba(255,255,255,0.85);
 }
 .stats {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-top: 24px;
-  justify-content: center;
+  margin-top: 20px;
 }
 .stat {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 12px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 16px;
   text-align: center;
-  flex: 1;
 }
 .stat-num {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: #f093fb;
+  margin-bottom: 4px;
 }
 .stat-label {
   font-size: 11px;
-  color: rgba(255,255,255,0.4);
-  margin-top: 2px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-bottom: 40px;
+  color: rgba(255,255,255,0.25);
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  h1 { font-size: 36px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .search-row { flex-direction: column; }
 }
 </style>
 </head>
 <body>
-<div class="hero">
-  <span class="emoji">✈️</span>
-  <h1>CityPulse</h1>
-  <p class="tagline">AI Travel Intelligence powered by MCP Protocol</p>
-  <span class="badge">Groq LLM + Live APIs + MCP Architecture</span>
+<div class="stars"></div>
+<div class="header">
+  <span class="logo">✈️</span>
+  <h1>City<span>Pulse</span></h1>
+  <p class="tagline">Your AI-powered travel intelligence companion</p>
+  <div class="badges">
+    <span class="badge hot">Google ADK</span>
+    <span class="badge hot">MCP Protocol</span>
+    <span class="badge">Live Weather</span>
+    <span class="badge">Wikipedia</span>
+    <span class="badge">20+ Cities</span>
+    <span class="badge">Real-time Data</span>
+  </div>
 </div>
-<div class="card">
-  <div class="cities">
-    <button class="city-btn" onclick="ask('Tell me about Tokyo!')">Tokyo</button>
-    <button class="city-btn" onclick="ask('Tell me about Paris!')">Paris</button>
-    <button class="city-btn" onclick="ask('Tell me about Dubai!')">Dubai</button>
-    <button class="city-btn" onclick="ask('Tell me about Mumbai!')">Mumbai</button>
-    <button class="city-btn" onclick="ask('Tell me about Singapore!')">Singapore</button>
-    <button class="city-btn" onclick="ask('Tell me about Hyderabad!')">Hyderabad</button>
-    <button class="city-btn" onclick="ask('Tell me about London!')">London</button>
-    <button class="city-btn" onclick="ask('Tell me about Sydney!')">Sydney</button>
+
+<div class="main">
+  <div class="search-box">
+    <div class="search-row">
+      <input type="text" id="q" placeholder="Ask about any city... e.g. Tell me about Tokyo!" onkeypress="if(event.key==='Enter') ask()"/>
+      <button class="ask-btn" id="btn" onclick="ask()">Explore ✨</button>
+    </div>
+    <div class="cities-label">Popular Destinations</div>
+    <div class="cities">
+      <button class="city-btn" onclick="ask('Tell me about Tokyo!')">🗼 Tokyo</button>
+      <button class="city-btn" onclick="ask('Tell me about Paris!')">🗺️ Paris</button>
+      <button class="city-btn" onclick="ask('Tell me about Dubai!')">🌆 Dubai</button>
+      <button class="city-btn" onclick="ask('Tell me about Mumbai!')">🌊 Mumbai</button>
+      <button class="city-btn" onclick="ask('Tell me about Singapore!')">🦁 Singapore</button>
+      <button class="city-btn" onclick="ask('Tell me about Hyderabad!')">🕌 Hyderabad</button>
+      <button class="city-btn" onclick="ask('Tell me about London!')">🎡 London</button>
+      <button class="city-btn" onclick="ask('Tell me about Sydney!')">🦘 Sydney</button>
+      <button class="city-btn" onclick="ask('Tell me about Bangkok!')">🏯 Bangkok</button>
+      <button class="city-btn" onclick="ask('Tell me about Berlin!')">🏛️ Berlin</button>
+      <button class="city-btn" onclick="ask('Tell me about Seoul!')">🎵 Seoul</button>
+      <button class="city-btn" onclick="ask('Tell me about Rome!')">🍕 Rome</button>
+      <button class="city-btn" onclick="ask('Tell me about Barcelona!')">⚽ Barcelona</button>
+      <button class="city-btn" onclick="ask('Tell me about Istanbul!')">🕌 Istanbul</button>
+      <button class="city-btn" onclick="ask('Tell me about Cairo!')">🏺 Cairo</button>
+      <button class="city-btn" onclick="ask('Tell me about Cape Town!')">🌍 Cape Town</button>
+    </div>
   </div>
-  <div class="input-row">
-    <input type="text" id="q" placeholder="Ask about any city... e.g. Tell me about Delhi!" onkeypress="if(event.key==='Enter') ask()"/>
-    <button class="ask-btn" id="btn" onclick="ask()">Ask</button>
-  </div>
+
   <div class="loading" id="loading">
-    <span class="spinner"></span>Fetching live data from MCP tools...
+    <span class="spinner"></span>
+    Fetching live data from MCP tools...
   </div>
-  <div class="response" id="response"></div>
+
+  <div class="response-box" id="response-box">
+    <div class="response-text" id="response"></div>
+  </div>
+
   <div class="stats">
     <div class="stat">
       <div class="stat-num">3</div>
-      <div class="stat-label">Live MCP Tools</div>
+      <div class="stat-label">MCP Tools</div>
     </div>
     <div class="stat">
-      <div class="stat-num">10+</div>
-      <div class="stat-label">Cities Supported</div>
+      <div class="stat-num">20+</div>
+      <div class="stat-label">Cities</div>
     </div>
     <div class="stat">
       <div class="stat-num">Live</div>
-      <div class="stat-label">Real-time Data</div>
+      <div class="stat-label">Weather Data</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">ADK</div>
+      <div class="stat-label">Powered</div>
     </div>
   </div>
 </div>
+
+<div class="footer">
+  Built with Google ADK + MCP Protocol + Groq LLaMA 3.3
+</div>
+
 <script>
 async function ask(preset) {
   const q = preset || document.getElementById("q").value.trim();
@@ -207,7 +261,7 @@ async function ask(preset) {
   document.getElementById("q").value = q;
   document.getElementById("btn").disabled = true;
   document.getElementById("loading").style.display = "block";
-  document.getElementById("response").style.display = "none";
+  document.getElementById("response-box").style.display = "none";
   try {
     const res = await fetch("/query", {
       method: "POST",
@@ -215,17 +269,20 @@ async function ask(preset) {
       body: JSON.stringify({question: q})
     });
     const data = await res.json();
-    const box = document.getElementById("response");
-    box.style.display = "block";
-    box.innerText = data.response;
+    document.getElementById("response").innerText = data.response;
+    document.getElementById("response-box").style.display = "block";
   } catch(e) {
-    const box = document.getElementById("response");
-    box.style.display = "block";
-    box.innerText = "Connection error. Please try again!";
+    document.getElementById("response").innerText = "Connection error. Please try again!";
+    document.getElementById("response-box").style.display = "block";
   }
   document.getElementById("loading").style.display = "none";
   document.getElementById("btn").disabled = false;
 }
 </script>
 </body>
-</html>
+</html>"""
+
+with open('/workspaces/citypulse-mcp/agent/index.html', 'w') as f:
+    f.write(new_content)
+print("Done!")
+EOF

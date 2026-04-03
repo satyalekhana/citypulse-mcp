@@ -13,15 +13,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 class Query(BaseModel):
     question: str
-
 
 @app.get("/health")
 async def health():
     return {"status": "CityPulse is live!", "version": "1.0"}
-
 
 @app.post("/query")
 async def query(body: Query):
@@ -31,6 +28,9 @@ async def query(body: Query):
     except Exception as e:
         return {"response": f"Error: {str(e)}", "status": "error"}
 
+@app.get("/")
+async def root():
+    return FileResponse("index.html")
 
 @app.get("/ui")
 async def ui():

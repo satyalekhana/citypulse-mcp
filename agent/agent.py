@@ -4,6 +4,7 @@ import httpx
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
+
 async def get_weather(city: str) -> str:
     coords = {
         "tokyo": (35.68, 139.69),
@@ -125,4 +126,3 @@ async def run_agent(question: str) -> str:
             return data["choices"][0]["message"]["content"]
     except Exception as e:
         return f"AI response error: {str(e)}"
-```

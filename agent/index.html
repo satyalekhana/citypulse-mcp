@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CityPulse — AI Travel Intelligence</title>
+<title>CityPulse - AI Travel Intelligence</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Segoe UI', sans-serif;
+  font-family: Segoe UI, sans-serif;
   background: #0f0c29;
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -26,9 +25,7 @@ body {
 h1 {
   font-size: 48px;
   font-weight: 800;
-  background: linear-gradient(90deg, #f093fb, #f5576c, #fda085);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f093fb;
   margin-bottom: 10px;
 }
 .tagline {
@@ -48,7 +45,6 @@ h1 {
 }
 .card {
   background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 24px;
   padding: 32px;
@@ -73,7 +69,7 @@ h1 {
   transition: all 0.2s;
 }
 .city-btn:hover {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
+  background: #f093fb;
   border-color: transparent;
   transform: translateY(-2px);
 }
@@ -91,12 +87,11 @@ input {
   font-size: 15px;
   color: white;
   outline: none;
-  transition: border 0.2s;
 }
 input::placeholder { color: rgba(255,255,255,0.4); }
 input:focus { border-color: #f093fb; }
 .ask-btn {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
+  background: #f093fb;
   color: white;
   border: none;
   padding: 14px 28px;
@@ -137,9 +132,7 @@ input:focus { border-color: #f093fb; }
   font-size: 15px;
   color: rgba(255,255,255,0.9);
   display: none;
-  animation: fadeIn 0.4s ease;
 }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .stats {
   display: flex;
   gap: 12px;
@@ -157,9 +150,7 @@ input:focus { border-color: #f093fb; }
 .stat-num {
   font-size: 22px;
   font-weight: 800;
-  background: linear-gradient(90deg, #f093fb, #f5576c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f093fb;
 }
 .stat-label {
   font-size: 11px;
@@ -173,32 +164,27 @@ input:focus { border-color: #f093fb; }
   <span class="emoji">✈️</span>
   <h1>CityPulse</h1>
   <p class="tagline">AI Travel Intelligence powered by MCP Protocol</p>
-  <span class="badge">⚡ Groq LLM + Live APIs + MCP Architecture</span>
+  <span class="badge">Groq LLM + Live APIs + MCP Architecture</span>
 </div>
-
 <div class="card">
   <div class="cities">
-    <button class="city-btn" onclick="ask('Tell me about Tokyo!')">🗼 Tokyo</button>
-    <button class="city-btn" onclick="ask('Tell me about Paris!')">🗺️ Paris</button>
-    <button class="city-btn" onclick="ask('Tell me about Dubai!')">🌆 Dubai</button>
-    <button class="city-btn" onclick="ask('Tell me about Mumbai!')">🌊 Mumbai</button>
-    <button class="city-btn" onclick="ask('Tell me about Singapore!')">🦁 Singapore</button>
-    <button class="city-btn" onclick="ask('Tell me about Hyderabad!')">🕌 Hyderabad</button>
-    <button class="city-btn" onclick="ask('Tell me about London!')">🎡 London</button>
-    <button class="city-btn" onclick="ask('Tell me about Sydney!')">🦘 Sydney</button>
+    <button class="city-btn" onclick="ask('Tell me about Tokyo!')">Tokyo</button>
+    <button class="city-btn" onclick="ask('Tell me about Paris!')">Paris</button>
+    <button class="city-btn" onclick="ask('Tell me about Dubai!')">Dubai</button>
+    <button class="city-btn" onclick="ask('Tell me about Mumbai!')">Mumbai</button>
+    <button class="city-btn" onclick="ask('Tell me about Singapore!')">Singapore</button>
+    <button class="city-btn" onclick="ask('Tell me about Hyderabad!')">Hyderabad</button>
+    <button class="city-btn" onclick="ask('Tell me about London!')">London</button>
+    <button class="city-btn" onclick="ask('Tell me about Sydney!')">Sydney</button>
   </div>
-
   <div class="input-row">
     <input type="text" id="q" placeholder="Ask about any city... e.g. Tell me about Delhi!" onkeypress="if(event.key==='Enter') ask()"/>
-    <button class="ask-btn" id="btn" onclick="ask()">Ask ✨</button>
+    <button class="ask-btn" id="btn" onclick="ask()">Ask</button>
   </div>
-
   <div class="loading" id="loading">
     <span class="spinner"></span>Fetching live data from MCP tools...
   </div>
-
   <div class="response" id="response"></div>
-
   <div class="stats">
     <div class="stat">
       <div class="stat-num">3</div>
@@ -214,32 +200,31 @@ input:focus { border-color: #f093fb; }
     </div>
   </div>
 </div>
-
 <script>
 async function ask(preset) {
-  const q = preset || document.getElementById('q').value.trim();
+  const q = preset || document.getElementById("q").value.trim();
   if (!q) return;
-  document.getElementById('q').value = q;
-  document.getElementById('btn').disabled = true;
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('response').style.display = 'none';
+  document.getElementById("q").value = q;
+  document.getElementById("btn").disabled = true;
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("response").style.display = "none";
   try {
-    const res = await fetch('/query', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+    const res = await fetch("/query", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({question: q})
     });
     const data = await res.json();
-    const box = document.getElementById('response');
-    box.style.display = 'block';
+    const box = document.getElementById("response");
+    box.style.display = "block";
     box.innerText = data.response;
   } catch(e) {
-    const box = document.getElementById('response');
-    box.style.display = 'block';
-    box.innerText = 'Connection error. Please try again!';
+    const box = document.getElementById("response");
+    box.style.display = "block";
+    box.innerText = "Connection error. Please try again!";
   }
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('btn').disabled = false;
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("btn").disabled = false;
 }
 </script>
 </body>

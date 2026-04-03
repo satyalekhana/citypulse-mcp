@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import asyncio
 from agent import run_agent
@@ -16,7 +18,7 @@ app.add_middleware(
 class Query(BaseModel):
     question: str
 
-@app.get("/")
+@app.get("/health")
 async def health():
     return {"status": "CityPulse is live!", "version": "1.0"}
 
@@ -27,3 +29,7 @@ async def query(body: Query):
         return {"response": response, "status": "success"}
     except Exception as e:
         return {"response": f"Error: {str(e)}", "status": "error"}
+
+@app.get("/")
+async def root():
+    return FileResponse("index.html")

@@ -1,3 +1,4 @@
+
 import os
 import httpx
 
@@ -5,7 +6,7 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
-async def get_weather(city: str) -> str:
+async def get_weather(city):
     coords = {
         "tokyo": (35.68, 139.69),
         "paris": (48.85, 2.35),
@@ -19,10 +20,15 @@ async def get_weather(city: str) -> str:
         "singapore": (1.35, 103.82)
     }
     lat, lon = coords.get(city.lower(), (17.38, 78.47))
-    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m"
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current": "temperature_2m,weathercode,windspeed_10m,relative_humidity_2m"
+    }
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            r = await client.get(url)
+            r = await client.get(url, params=params)
             data = r.json()
         current = data["current"]
         codes = {
@@ -36,23 +42,28 @@ async def get_weather(city: str) -> str:
             80: "Rain showers",
             95: "Thunderstorm"
         }
-        return f"Temperature: {current['temperature_2m']}C, Wind: {current['windspeed_10m']} km/h, Humidity: {current['relative_humidity_2m']}%, Condition: {codes.get(current['weathercode'], 'Clear')}"
+        condition = codes.get(current["weathercode"], "Clear")
+        temp = current["temperature_2m"]
+        wind = current["windspeed_10m"]
+        humidity = current["relative_humidity_2m"]
+        return f"Temperature: {temp}C, Wind: {wind} km/h, Humidity: {humidity}%, Condition: {condition}"
     except Exception as e:
-        return f"Weather data unavailable: {str(e)}"
+        return f"Weather unavailable: {str(e)}"
 
 
-async def get_city_highlights(city: str) -> str:
-    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{city.replace(' ', '_').title()}"
+async def get_city_highlights(city):
+    city_formatted = city.replace(" ", "_").title()
+    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{city_formatted}"
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             r = await client.get(url)
             data = r.json()
         return data.get("extract", "No highlights found")[:500]
     except Exception as e:
-        return f"City highlights unavailable: {str(e)}"
+        return f"Highlights unavailable: {str(e)}"
 
 
-async def get_country_info(country_code: str) -> str:
+async def get_country_info(country_code):
     url = f"https://restcountries.com/v3.1/alpha/{country_code}"
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -60,12 +71,14 @@ async def get_country_info(country_code: str) -> str:
             data = r.json()[0]
         languages = list(data.get("languages", {}).values())[:2]
         currencies = [v["name"] for v in data.get("currencies", {}).values()]
-        return f"Country: {data['name']['common']}, Capital: {data.get('capital', [''])[0]}, Languages: {', '.join(languages)}, Currency: {', '.join(currencies)}"
+        capital = data.get("capital", [""])[0]
+        country_name = data["name"]["common"]
+        return f"Country: {country_name}, Capital: {capital}, Languages: {', '.join(languages)}, Currency: {', '.join(currencies)}"
     except Exception as e:
         return f"Country info unavailable: {str(e)}"
 
 
-async def run_agent(question: str) -> str:
+async def run_agent(question):
     city_map = {
         "tokyo": "JP",
         "paris": "FR",
@@ -89,45 +102,48 @@ async def run_agent(question: str) -> str:
     highlights = await get_city_highlights(city)
     country = await get_country_info(country_code)
 
-    prompt = (
-        "You are CityPulse, an enthusiastic AI travel guide.\n\n"
-        "Here is live data fetched using MCP tools:\n\n"
-        f"WEATHER DATA: {weather}\n"
-        f"CITY HIGHLIGHTS: {highlights}\n"
-        f"COUNTRY INFO: {country}\n\n"
-        f"User asked: {question}\n\n"
-        "Respond in this format:\n"
-        "Weather Right Now\n"
-        "[weather details here]\n\n"
-        "City Highlights\n"
-        "[city highlights here]\n\n"
-        "Local Food and Culture\n"
-        "[food and culture info here]\n\n"
-        "Travel Tip\n"
-        "[one personalized tip based on weather]\n\n"
-        "Be enthusiastic and helpful!"
-    )
+    prompt = "You are CityPulse, an enthusiastic AI travel guide.\n\n"
+    prompt += "Live data fetched using MCP tools:\n\n"
+    prompt += "WEATHER DATA: " + weather + "\n"
+    prompt += "CITY HIGHLIGHTS: " + highlights + "\n"
+    prompt += "COUNTRY INFO: " + country + "\n\n"
+    prompt += "User asked: " + question + "\n\n"
+    prompt += "Respond in this format:\n"
+    prompt += "Weather Right Now\n"
+    prompt += "[weather details]\n\n"
+    prompt += "City Highlights\n"
+    prompt += "[city highlights]\n\n"
+    prompt += "Local Food and Culture\n"
+    prompt += "[food and culture]\n\n"
+    prompt += "Travel Tip\n"
+    prompt += "[one tip based on weather]\n\n"
+    prompt += "Be enthusiastic and helpful!"
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             r = await client.post(
                 GROQ_URL,
                 headers={
-                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Authorization": "Bearer " + str(GROQ_API_KEY),
                     "Content-Type": "application/json"
                 },
                 json={
                     "model": "llama3-8b-8192",
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
                     "max_tokens": 1000
                 }
             )
-data = r.json()
+            data = r.json()
             if "choices" in data:
                 return data["choices"][0]["message"]["content"]
             elif "error" in data:
-                return f"Groq error: {data['error']['message']}"
+                return "Groq error: " + str(data["error"]["message"])
             else:
-                return f"Unexpected response: {str(data)}"
+                return "Unexpected response: " + str(data)
     except Exception as e:
-        return f"AI response error: {str(e)}"
+        return "AI response error: " + str(e)

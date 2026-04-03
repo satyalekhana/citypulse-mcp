@@ -122,7 +122,12 @@ async def run_agent(question: str) -> str:
                     "max_tokens": 1000
                 }
             )
-            data = r.json()
-            return data["choices"][0]["message"]["content"]
+data = r.json()
+            if "choices" in data:
+                return data["choices"][0]["message"]["content"]
+            elif "error" in data:
+                return f"Groq error: {data['error']['message']}"
+            else:
+                return f"Unexpected response: {str(data)}"
     except Exception as e:
         return f"AI response error: {str(e)}"
